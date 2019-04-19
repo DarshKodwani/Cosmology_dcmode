@@ -12,3 +12,4 @@ For original information, http://class-code.net or https://github.com/lesgourg/c
 Cosmological Parameters with Adiabatic Decaying Initial Condition
 -----------------------------------------------------------------
 
+# Cosmology_dcmode
