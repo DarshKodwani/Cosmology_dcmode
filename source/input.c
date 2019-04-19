@@ -1572,8 +1572,13 @@ int input_read_parameters(
                "addabatic-decaying mode only support analytic_pk, set `P_k_ini type`=analytic_Pk");
 
   }
+    class_read_double("k_pivot",ppm->k_pivot);
+  // Darsh //
+    class_read_double("dAmp_k", ppm->dAmp_k);
+    class_read_double("k_amp", ppm->k_amp);
+    class_read_double("dk_amp", ppm->dk_amp);
+  // Darsh //
 
-  class_read_double("k_pivot",ppm->k_pivot);
 
   if (ppm->primordial_spec_type == two_scales) {
 
@@ -2979,6 +2984,7 @@ int input_default_params(
      other parameters from the Planck2013 Cosmological Parameter
      paper. */
 
+  /** Darsh : QUOTE THESE VALUES FOR PAPER **/
   pba->h = 0.67556;
   pba->H0 = pba->h * 1.e5 / _c_;
   pba->T_cmb = 2.7255;
@@ -3135,6 +3141,11 @@ int input_default_params(
 
   ppm->primordial_spec_type = analytic_Pk;
   ppm->k_pivot = 0.05;
+  // Darsh //
+  ppm->k_amp = 0.5;
+  ppm->dk_amp = 0.01;
+  ppm->dAmp_k = 0.;
+  // Darsh //
   ppm->A_s = 2.215e-9;
   ppm->n_s = 0.9619;
   ppm->alpha_s = 0.;
@@ -3397,7 +3408,7 @@ int input_default_precision ( struct precision * ppr ) {
    */
 
   ppr->evolver = ndf15;
-
+  /** DARSH: QUOTE THESE VALUES FOR PAPER **/
   ppr->k_min_tau0=0.1;
   ppr->k_max_tau0_over_l_max=2.4; // very relevant for accuracy of lensed ClTT at highest l's
   ppr->k_step_sub=0.05;

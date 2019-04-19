@@ -1,0 +1,139 @@
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from classy import Class
+from scipy.optimize import fsolve
+from scipy.interpolate import interp1d
+import math
+
+font = {'size'   : 16, 'family':'STIXGeneral'}
+axislabelfontsize='large'
+matplotlib.rc('font', **font)
+matplotlib.mathtext.rcParams['legend.fontsize']='medium'
+plt.rcParams["figure.figsize"] = [8.0,6.0]
+
+k = 0.001  # 1/Mpc
+
+common_settings = {# we need to set the output field to something although
+                   # the really releveant outpout here will be set with 'k_output_values'
+                   'output':'mPk',
+                   # value of k we want to polot in [1/Mpc]
+                   'k_output_values':k,
+                   # LambdaCDM parameters
+                   'h':0.67556,
+                   'omega_b':0.022032, 
+                   'omega_cdm':0.12038,
+                   'A_s':2.215e-9,
+                   'n_s':0.9619,
+                   'tau_reio':0.0925,
+                   # Take fixed value for primordial Helium (instead of automatic BBN adjustment)
+                   'YHe':0.246,
+                   # other options and settings
+                   'compute damping scale':'yes', # needed to output the time of damping scale crossing
+                   'gauge':'newtonian', 
+                   'ic' : 'ad&addcs', 
+                   'f_addcs' : 0.1, 
+                   'n_addcs' : 1., 
+                   'alpha_addcs' : 0., 
+                   'phi_addcs' : 0.785 }
+
+M = Class()
+M.set(common_settings)
+M.compute()
+M.struct_cleanup
+M.empty()
+
+all_k = M.get_perturbations()
+one_k = all_k['scalar'][0]
+
+tau = one_k['tau [Mpc]']
+Theta0 = 0.25*one_k['delta_g']
+phi = one_k['phi']
+psi = one_k['psi']
+theta_b = one_k['theta_b']
+om_gamma = 5.050601e-05
+a = one_k['a']
+R = 0.75*M.Omega_b()/om_gamma*a
+zero_point = -(1.+R)*psi
+Theta0_amp = max(Theta0.max(), -Theta0.min())
+quantities = M.get_current_derived_parameters(['tau_rec'])
+tau_rec = quantities['tau_rec']
+background = M.get_background()
+
+background_tau = background['conf. time [Mpc]'] 
+background_z = background['z']
+background_k_over_aH = k/background['H [1/Mpc]']*(1.+background['z']) #k/aH, relative size of mode to comoving horizon
+background_k_rs = k*background['comov.snd.hrz.'] #k*rs
+background_rhom_over_rhor = (background['(.)rho_b']+background['(.)rho_cdm'])/(background['(.)rho_g']+background['(.)rho_ur']) #rho_m/rho_r to find time of equality
+
+#Interpolating functions
+
+tau_at_k_over_aH = interp1d(background_k_over_aH, background_tau)
+tau_at_k_rs = interp1d(background_k_rs, background_tau)
+tau_at_rho_m_over_r = interp1d(background_rhom_over_rhor, background_tau)
+
+#Get the times of hubble crossing, peaks in oscillations, matter_radiation equality
+
+tau_Hubble = tau_at_k_over_aH(2.*math.pi)
+tau_s = tau_at_k_rs(2.*math.pi)
+tau_eq = tau_at_rho_m_over_r(1.)
+
+#Start plotting
+
+#plt.xlim([tau[0], tau_rec*1.3])
+plt.ylim([-1.3*Theta0_amp, 1.3*Theta0_amp])
+plt.xlabel(r'$\tau \, \, \, \mathrm{[Mpc]} $')
+plt.title(r'$\mathrm{Transfer} (\tau, k) \, \, \, \mathrm{for} \, \, \, k = %g \, \, \, [1/\mathrm{Mpc}]$' %k)
+plt.grid()
+
+plt.axvline(x=tau_Hubble,color='r')
+plt.axvline(x=tau_s,color='y')
+plt.axvline(x=tau_eq,color='k')
+plt.axvline(x=tau_rec,color='k')
+#
+plt.annotate(r'Hubble cross.',
+                xy=(tau_Hubble,1.08*Theta0_amp),
+                xytext=(0.15*tau_Hubble,1.18*Theta0_amp),
+                arrowprops=dict(facecolor='black', shrink=0.05, width=1, headlength=5, headwidth=5))
+plt.annotate(r'sound hor. cross.',
+                 xy=(tau_s,-1.0*Theta0_amp),
+                 xytext=(1.5*tau_s,-1.2*Theta0_amp),
+                 arrowprops=dict(facecolor='black', shrink=0.05, width=1, headlength=5, headwidth=5))
+plt.annotate(r'eq.',
+                 xy=(tau_eq,1.08*Theta0_amp),
+                 xytext=(0.45*tau_eq,1.18*Theta0_amp),
+                 arrowprops=dict(facecolor='black', shrink=0.05, width=1, headlength=5, headwidth=5))
+plt.annotate(r'rec.',
+                 xy=(tau_rec,1.08*Theta0_amp),
+                 xytext=(0.45*tau_rec,1.18*Theta0_amp),
+                 arrowprops=dict(facecolor='black', shrink=0.05, width=1, headlength=5, headwidth=5))
+#
+# Possibility to add functions one by one, saving between each (for slides)
+#
+plt.semilogx(tau,psi,'y-',label=r'$\psi$')
+#plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+#plt.savefig('one_k_1.pdf',bbox_inches='tight')
+#
+plt.semilogx(tau,phi,'r-',label=r'$\phi$')
+#plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+#plt.savefig('one_k_2.pdf',bbox_inches='tight')
+#
+plt.semilogx(tau,zero_point,'k:',label=r'$-(1+R)\psi$')
+#plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+#plt.savefig('one_k_3.pdf',bbox_inches='tight')
+#
+plt.semilogx(tau,Theta0,'b-',linewidth=2,label=r'$\Theta_0$')
+#plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+#plt.savefig('one_k_4.pdf',bbox_inches='tight')
+#
+plt.semilogx(tau,Theta0+psi,'c-',linewidth=2,label=r'$\Theta_0+\psi$')
+#plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+#plt.savefig('one_k_5.pdf',bbox_inches='tight')
+#
+plt.semilogx(tau,theta_b,'g-',label=r'$\theta_b$')
+plt.legend(loc='right',bbox_to_anchor=(1.4, 0.5))
+plt.savefig('one_k_decay.pdf', bbox_inches = 'tight')
+
+
+
+

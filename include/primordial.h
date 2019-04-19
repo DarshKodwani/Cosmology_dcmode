@@ -85,6 +85,11 @@ struct primordial {
   //@{
 
   double k_pivot; /**< pivot scale in \f$ Mpc^{-1} \f$ */
+  // Darsh start : Adding parameter for binned power spectrum //
+  double k_amp;
+  double dk_amp;
+  double dAmp_k;
+  //Darsh end //
 
   enum primordial_spectrum_type primordial_spec_type; /**< type of primordial spectrum (simple analytic from, integration of inflationary perturbations, etc.) */
 

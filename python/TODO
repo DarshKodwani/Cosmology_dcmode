@@ -1,0 +1,6 @@
+1) Renormalise the transfers using the integral of the transfers squared on sub-horizon scales
+2) Make sure the transfers are for DECAYING ONLY - i.e no growing mode component - check CLASS for that
+3) Compute fisher for various epsilons! (so epsilon_1 pm error, epsilon_2 pm error, and so on) and also for epsilons around growing mode power spectra
+4) Compute PCA for each of these power spectr
+5) Comment in introduction and or discussion that we aim to look at the constraining power due to temperature only first and then polarization added. Since the transfer functions for both of these observables are different we dont expect them to be degenerate in any way and thus far more constraning for the primordial power spectra. 
+6) FINISHED!
